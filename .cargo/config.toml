@@ -1,0 +1,7 @@
+# Cross linkers (Debian/Ubuntu: apt install gcc-arm-linux-gnueabihf).
+# Target: 32-bit armv7 hard-float embedded Linux gateways (e.g. SAMA5-class SoCs): gnueabihf.
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"
+
+[target.armv7-unknown-linux-musleabihf]
+linker = "arm-linux-gnueabihf-gcc"

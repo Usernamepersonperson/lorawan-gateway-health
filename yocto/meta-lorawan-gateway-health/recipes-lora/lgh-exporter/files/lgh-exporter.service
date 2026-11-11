@@ -1,0 +1,15 @@
+[Unit]
+Description=LoRaWAN gateway health exporter (Semtech UDP tap + Prometheus endpoint)
+After=network.target
+
+[Service]
+ExecStart=/opt/lgh-exporter/lgh-exporter \
+    --tap-listen 127.0.0.1:1701 \
+    --upstream 127.0.0.1:1700 \
+    --metrics-listen 0.0.0.0:9089 \
+    --disk /
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

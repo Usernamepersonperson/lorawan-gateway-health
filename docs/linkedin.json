@@ -1,0 +1,32 @@
+{
+  "claim": "A gateway-side exporter that shows CRC errors and bridge outages the network server never sees.",
+  "data_label": "simulated data: replayed traffic, no real gateway",
+  "stats": [
+    [
+      "515 KiB",
+      "armv7 glibc binary, stripped",
+      "accent"
+    ],
+    [
+      "78",
+      "tests green in CI",
+      "green"
+    ],
+    [
+      "~36 %",
+      "peak CRC errors, injected burst",
+      "amber"
+    ]
+  ],
+  "limit": "Never run on real gateway hardware; Yocto recipe unbuilt, no real ARM CPU figures.",
+  "alt": "Dark panel titled What the gateway itself sees: three stat tiles (57 uplinks per minute, 5.7 percent CRC error ratio, 36 percent TX duty versus limit) above a line chart of a simulated CRC-error burst peaking near 36 percent.",
+  "hashtags": [
+    "#IoT",
+    "#LoRaWAN",
+    "#Prometheus",
+    "#Grafana",
+    "#Rust",
+    "#EmbeddedLinux"
+  ],
+  "post": "A LoRaWAN gateway can look healthy from the network server and still be quietly sick: CRC-failed packets never leave the box, a backhaul bridge can drop and recover, and downlink rejections stay local.\n\nI wrote a small open-source Rust exporter that runs on the gateway itself. It sits between the Semtech UDP packet forwarder and its bridge, relays every datagram byte for byte, and turns a copy into Prometheus metrics: uplinks per channel and spreading factor, CRC-error ratio, RSSI and SNR histograms, airtime and duty-cycle estimates, and host health. A Grafana dashboard and a docker compose demo are included.\n\nMeasured numbers: the stripped armv7 hard-float glibc binary is 515 KiB, the fully static one 579 KiB, and 78 tests pass in CI, including qemu smoke runs of both ARM builds. In the demo, a replayed 40-device fleet shows an injected CRC-error burst peaking around 36 percent.\n\nWhat is not verified: it has never run on real gateway hardware. All traffic is simulated or hand-written fixtures from the protocol spec, the Yocto recipe was never built with BitBake, and I have no real ARM CPU or memory figures.\n\nIf you operate gateways, which gateway-side signal do you wish you could see without logging in over SSH?\n\nCode: https://github.com/Usernamepersonperson/lorawan-gateway-health"
+}

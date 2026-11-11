@@ -1,0 +1,6 @@
+{"rxpk":[
+{"freq":868.1,"stat":1,"modu":"LORA","datr":"SF8BW125","codr":"4/5","lsnr":4.2,"rssi":-95,"size":18},
+{"freq":868.3,"stat":1,"modu":"LORA","datr":"SF99BW125","codr":"4/5","lsnr":4.2,"rssi":-95,"size":18},
+{"stat":1,"modu":"LORA","datr":"SF8BW125","lsnr":4.2,"rssi":-95,"size":18},
+{"freq":868.5,"stat":1,"modu":"LORA","datr":"SF10BW125","codr":"4/6","lsnr":-6.0,"rssi":-110,"size":30}
+]}

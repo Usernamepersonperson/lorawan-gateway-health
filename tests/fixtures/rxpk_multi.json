@@ -1,0 +1,5 @@
+{"rxpk":[
+{"time":"2026-11-08T10:00:01.123456Z","tmst":3512348611,"chan":2,"rfch":0,"freq":868.5,"stat":1,"modu":"LORA","datr":"SF7BW125","codr":"4/5","lsnr":10.0,"rssi":-57,"size":23,"data":"QAQDAgGAAQAB9ibTICgNF4ruogzx2g=="},
+{"time":"2026-11-08T10:00:02.500000Z","tmst":3513348611,"chan":0,"rfch":0,"freq":868.1,"stat":1,"modu":"LORA","datr":"SF12BW125","codr":"4/5","lsnr":-17.5,"rssi":-118,"size":23,"data":"QAQDAgGAAQAB9ibTICgNF4ruogzx2g=="},
+{"time":"2026-11-08T10:00:03.250000Z","tmst":3514348611,"chan":1,"rfch":0,"freq":868.3,"stat":-1,"modu":"LORA","datr":"SF9BW125","codr":"4/5","lsnr":-21.0,"rssi":-122,"size":14,"data":"AAAAAAAAAAAAAAAAAAA="}
+]}

@@ -1,0 +1,59 @@
+# One-command demo:  docker compose up --build   then open http://localhost:3000 (dashboard "LoRaWAN gateway health").
+#
+#   replay-forwarder --UDP--> exporter (tap :1701) --UDP--> replay-bridge (:1700)
+#   Prometheus scrapes exporter:9089 every 5 s; Grafana reads Prometheus.
+#
+# The replay tools fake a packet forwarder and a bridge. Every 10 minutes the bridge goes silent for
+# 60 s and the forwarder has a CRC-error burst, so the dashboard has something to show.
+name: lgh-demo
+
+services:
+  replay-bridge:
+    build: .
+    image: lgh-exporter:demo
+    entrypoint: ["/lgh-replay", "bridge", "--listen", "0.0.0.0:1700", "--downlink-every", "10", "--outage-after", "540", "--outage-for", "60"]
+
+  exporter:
+    image: lgh-exporter:demo
+    entrypoint:
+      - /lgh-exporter
+      - --tap-listen=0.0.0.0:1701
+      - --upstream=replay-bridge:1700
+      - --metrics-listen=0.0.0.0:9089
+      - --bridge-timeout=30
+      - --mqtt-probe=prometheus:9090   # stand-in broker: any reachable TCP port shows the probe metric
+    ports:
+      - "127.0.0.1:9089:9089"
+    depends_on:
+      - replay-bridge
+
+  replay-forwarder:
+    image: lgh-exporter:demo
+    entrypoint: ["/lgh-replay", "forwarder", "--target", "exporter:1701", "--rate", "1.0", "--stat-interval", "10"]
+    depends_on:
+      - exporter
+
+  prometheus:
+    image: prom/prometheus:latest
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=2h"]
+    volumes:
+      - ./demo/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      - exporter
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      # Demo only: anonymous viewer access, default admin/admin login.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/lgh-gateway-health.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus

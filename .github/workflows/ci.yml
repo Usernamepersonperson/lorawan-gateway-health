@@ -1,0 +1,113 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: test (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo test --locked
+      - name: Generated files are up to date
+        run: |
+          python3 scripts/gen_yocto_crates.py --check
+          python3 scripts/gen_dashboard.py
+          git diff --exit-code grafana/dashboards/lgh-gateway-health.json
+          python3 -m json.tool grafana/dashboards/lgh-gateway-health.json > /dev/null
+      - name: x86_64 release size
+        run: |
+          cargo build --release --locked
+          ls -l target/release/lgh-exporter
+          echo "x86_64-unknown-linux-gnu: $(stat -c %s target/release/lgh-exporter) bytes" >> "$GITHUB_STEP_SUMMARY"
+
+  cross:
+    name: cross-build ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Typical armv7 hard-float gateway SoC (e.g. SAMA5-class Cortex-A5). Glibc userland assumed.
+          - target: armv7-unknown-linux-gnueabihf
+            note: glibc userland, dynamic
+          - target: armv7-unknown-linux-musleabihf
+            note: fully static, runs on any armv7 hard-float Linux
+          - target: x86_64-unknown-linux-musl
+            note: static, for the Docker demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - name: Install ARM cross toolchain and qemu
+        if: startsWith(matrix.target, 'armv7')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-binfmt
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Report binary size
+        run: |
+          d=target/${{ matrix.target }}/release
+          {
+            echo "### ${{ matrix.target }} (${{ matrix.note }})"
+            echo "| binary | bytes |"
+            echo "|---|---:|"
+            echo "| lgh-exporter | $(stat -c %s $d/lgh-exporter) |"
+            echo "| lgh-replay | $(stat -c %s $d/lgh-replay) |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Smoke test under qemu (ARM)
+        if: startsWith(matrix.target, 'armv7')
+        env:
+          QEMU_LD_PREFIX: /usr/arm-linux-gnueabihf
+        run: sh scripts/measure.sh target/${{ matrix.target }}/release 4
+      - name: Smoke test (x86_64)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sh scripts/measure.sh target/${{ matrix.target }}/release 4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lgh-exporter-${{ matrix.target }}
+          path: |
+            target/${{ matrix.target }}/release/lgh-exporter
+            target/${{ matrix.target }}/release/lgh-replay
+
+  demo:
+    name: docker compose demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the stack
+        run: docker compose up --build -d
+      - name: Prometheus scrapes the exporter and Grafana has the dashboard
+        run: |
+          for i in $(seq 1 40); do
+            up=$(curl -s 'http://127.0.0.1:9090/api/v1/query?query=lgh_bridge_up' | grep -c '"1"' || true)
+            [ "$up" -ge 1 ] && break
+            sleep 3
+          done
+          curl -s 'http://127.0.0.1:9090/api/v1/query?query=sum(lgh_datagrams_total)' | tee /dev/stderr | grep -q '"success"'
+          curl -s 'http://127.0.0.1:9090/api/v1/query?query=lgh_bridge_up' | grep -q '"1"'
+          for i in $(seq 1 20); do
+            curl -s http://127.0.0.1:3000/api/dashboards/uid/lgh-gateway-health | grep -q 'LoRaWAN gateway health' && break
+            sleep 3
+          done
+          curl -s http://127.0.0.1:3000/api/dashboards/uid/lgh-gateway-health | grep -q 'LoRaWAN gateway health'
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color | tail -100
+      - run: docker compose down -v
+        if: always()

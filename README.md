@@ -8,7 +8,7 @@ A 0.5 MB Rust binary that sits between a LoRaWAN packet forwarder and its bridge
 
 *Top two rows of the dashboard, a real Grafana screenshot of the demo stack fed by replayed synthetic traffic (see [How the figure was made](#how-the-figure-was-made)). The whole dashboard, including the bridge outage, is in [docs/figure-full.png](docs/figure-full.png).*
 
-This is the gateway-side companion to [lorawan-fleet-doctor](https://github.com/Usernamepersonperson/lorawan-fleet-doctor), which reads network-server uplink events and finds sick devices and silent gateways from the outside. This exporter answers the question that tool cannot: *what does the gateway itself see?* (CRC errors that never reach the network server, downlink rejections, bridge down while the forwarder is fine.)
+This is the gateway-side companion to [lorawan-fleet-doctor](https://github.com/VB-Builds/lorawan-fleet-doctor), which reads network-server uplink events and finds sick devices and silent gateways from the outside. This exporter answers the question that tool cannot: *what does the gateway itself see?* (CRC errors that never reach the network server, downlink rejections, bridge down while the forwarder is fine.)
 
 The target is any embedded-Linux LoRaWAN gateway that runs the Semtech UDP packet forwarder and ships the traffic to a ChirpStack-style gateway bridge on localhost: 32-bit armv7 hard-float SoCs (SAMA5-class Cortex-A5, for example), glibc userland. I have no affiliation with ChirpStack or Semtech, and have not run this on real gateway hardware.
 

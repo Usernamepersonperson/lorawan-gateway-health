@@ -4,11 +4,11 @@
 
 SUMMARY = "Prometheus exporter for LoRaWAN gateway and packet-forwarder health"
 DESCRIPTION = "UDP tap for the Semtech packet-forwarder protocol that exposes uplink/downlink counters, CRC errors, RSSI/SNR histograms, airtime and duty-cycle estimates, backhaul status and host metrics on a Prometheus endpoint."
-HOMEPAGE = "https://github.com/Usernamepersonperson/lorawan-gateway-health"
+HOMEPAGE = "https://github.com/VB-Builds/lorawan-gateway-health"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=69595eb90c9890631dd8fe22bfc7a018"
 
-SRC_URI = "git://github.com/Usernamepersonperson/lorawan-gateway-health.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/VB-Builds/lorawan-gateway-health.git;protocol=https;branch=main"
 # Pin to a commit before building for real; AUTOREV only keeps this example short.
 SRCREV = "${AUTOREV}"
 S = "${WORKDIR}/git"

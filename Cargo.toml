@@ -5,7 +5,7 @@ edition = "2021"
 rust-version = "1.75"
 description = "Prometheus exporter for LoRaWAN gateway health: a UDP tap on the Semtech packet-forwarder protocol"
 license = "MIT"
-repository = "https://github.com/Usernamepersonperson/lorawan-gateway-health"
+repository = "https://github.com/VB-Builds/lorawan-gateway-health"
 readme = "README.md"
 publish = false
 
